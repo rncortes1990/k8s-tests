@@ -25,20 +25,20 @@ spec:
     requests:
       storage: 3Gi
 ---
-kind: Deployment
-apiVersion: apps/v1
+apiVersion: v1
+kind: ReplicationController
 metadata:
   name: task-pv-pod
   labels:
-    name: task-pv-pod
+    app: task-pv-pod
 spec:
-  selector:
-    matchLabels:
-      name: task-pv-pod
   replicas: 2
+  selector:
+    app: task-pv-pod
   template:
     metadata:
-      name: task-pv-prod
+      labels:
+        app: task-pv-pod
     spec:
       volumes:
         - name: task-pv-storage
@@ -54,15 +54,16 @@ spec:
             - mountPath: "/usr/share/nginx/html"
               name: task-pv-storage
 ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: haystackservice
-# spec:
-#   selector:
-#     name: task-pv-prod
-#   ports:
-#   - name: mport
-#     protocol: TCP
-#     port: 27017
-#     nodePort: 30069
+apiVersion: v1
+kind: Service
+metadata:
+  name: haystackservice
+spec:
+  type: NodePort
+  selector:
+    name: task-pv-prod
+  ports:
+  - name: mport
+    protocol: TCP
+    port: 27017
+    nodePort: 30069
