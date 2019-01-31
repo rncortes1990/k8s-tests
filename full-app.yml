@@ -1,0 +1,68 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: task-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/c/Users/nicolas/kubernetes/"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: task-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: task-pv-pod
+  labels:
+    name: task-pv-pod
+spec:
+  selector:
+    matchLabels:
+      name: task-pv-pod
+  replicas: 2
+  template:
+    metadata:
+      name: task-pv-prod
+    spec:
+      volumes:
+        - name: task-pv-storage
+          persistentVolumeClaim:
+           claimName: task-pv-claim
+      containers:
+        - name: mongodb
+          image: mongo
+          ports:
+            - containerPort: 27017
+              name: "mongodb"
+          volumeMounts:
+            - mountPath: "/usr/share/nginx/html"
+              name: task-pv-storage
+---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: haystackservice
+# spec:
+#   selector:
+#     name: task-pv-prod
+#   ports:
+#   - name: mport
+#     protocol: TCP
+#     port: 27017
+#     nodePort: 30069
